@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+    }
+    
+    h2 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #333;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    
+    .status-text {
+      font-size: 14px;
+    }
+    
+    .status.active {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    
+    .status.inactive {
+      background: #ffebee;
+      color: #c62828;
+    }
+    
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    button:hover {
+      background: #3367d6;
+    }
+    
+    button:active {
+      background: #2851a3;
+    }
+    
+    .stats {
+      margin-top: 15px;
+      padding: 10px;
+      background: #fff3e0;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #e65100;
+    }
+    
+    .stats-clickable {
+      transition: all 0.2s;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .stats-clickable:hover {
+      background: #ffe0b2;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(230, 81, 0, 0.2);
+    }
+    
+    .stats-clickable:active {
+      transform: translateY(0);
+      background: #ffcc80;
+    }
+    
+    #errorCountSection {
+      width: 100%;
+      padding: 2px 0;
+    }
+    
+    .info {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .dictionary-section {
+      margin-top: 15px;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 6px;
+    }
+    
+    .dictionary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .dictionary-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .dictionary-count {
+      font-size: 12px;
+      color: #666;
+      background: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    
+    .btn-secondary {
+      margin-top: 8px;
+      background: #666;
+      font-size: 12px;
+      padding: 8px;
+    }
+    
+    .btn-secondary:hover {
+      background: #555;
+    }
+    
+    .btn-view-dict {
+      background: #4CAF50;
+      margin-top: 8px;
+      font-size: 12px;
+      padding: 8px;
+    }
+    
+    .btn-view-dict:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔍 CoreSpell Audit</h2>
+  
+  <div class="status inactive" id="status">
+    <span class="status-text">Проверка отключена</span>
+  </div>
+  
+  <button id="toggleBtn">Включить проверку</button>
+  
+  <div class="stats stats-clickable" id="stats" style="display: none;">
+    <div style="cursor: pointer;" id="errorCountSection" title="Кликните для навигации по ошибкам">
+      Найдено ошибок: <strong id="errorCount">0</strong> 
+      <span style="font-size: 11px; opacity: 0.8;">🔍 (кликните)</span>
+    </div>
+  </div>
+  
+  <div class="dictionary-section">
+    <div class="dictionary-header">
+      <span class="dictionary-title">📚 Пользовательский словарь</span>
+      <span class="dictionary-count" id="dictCount">0 слов</span>
+    </div>
+    <button class="btn-view-dict" id="viewDictBtn">Просмотреть словарь</button>
+    <button class="btn-secondary" id="clearDictBtn">Очистить словарь</button>
+  </div>
+  
+  <div class="info">
+    Нажмите на подчеркнутую ошибку, чтобы увидеть предложения или добавить слово в словарь.
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

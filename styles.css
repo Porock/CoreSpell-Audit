@@ -1,0 +1,299 @@
+/* Подчеркивание ошибок */
+.qa-text-error {
+  background: linear-gradient(to bottom, transparent 0%, transparent calc(100% - 2px), #ff4444 calc(100% - 2px), #ff4444 100%);
+  background-size: 4px 100%;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  cursor: pointer;
+  position: relative;
+  padding: 2px 4px;
+  text-decoration: none;
+  border-bottom: 2px wavy #ff4444;
+  transition: all 0.3s ease;
+  
+  /* Постоянная подсветка всех ошибок */
+  background-color: rgba(255, 235, 59, 0.25);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+}
+
+.qa-text-error:hover {
+  background-color: rgba(255, 193, 7, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Пульсирующая подсветка текущей активной ошибки */
+.qa-text-highlight {
+  animation: qa-pulse 1.5s ease-in-out infinite;
+  background-color: rgba(255, 87, 34, 0.5) !important;
+  border-radius: 6px;
+  padding: 3px 6px !important;
+  box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.8);
+  border: 2px solid #FF5722;
+  z-index: 1000;
+  position: relative;
+}
+
+@keyframes qa-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7),
+                0 0 20px rgba(255, 87, 34, 0.4);
+    background-color: rgba(255, 87, 34, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(255, 87, 34, 0),
+                0 0 30px rgba(255, 87, 34, 0.2);
+    background-color: rgba(255, 87, 34, 0.7);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 87, 34, 0),
+                0 0 20px rgba(255, 87, 34, 0.4);
+    background-color: rgba(255, 87, 34, 0.5);
+    transform: scale(1);
+  }
+}
+
+/* Дополнительный эффект свечения для текущей ошибки */
+.qa-text-highlight::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: rgba(255, 87, 34, 0.1);
+  border-radius: 8px;
+  z-index: -1;
+  animation: qa-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes qa-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.qa-text-wrapper {
+  display: inline;
+}
+
+/* Уведомления */
+.qa-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #333;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 9999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  max-width: 300px;
+}
+
+.qa-notification-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.qa-notification-info {
+  background: #2196F3;
+}
+
+.qa-notification-success {
+  background: #4CAF50;
+}
+
+.qa-notification-warning {
+  background: #FF9800;
+}
+
+.qa-notification-error {
+  background: #f44336;
+}
+
+/* Модальное окно */
+.qa-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.qa-modal-show {
+  opacity: 1;
+}
+
+.qa-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.qa-modal-show .qa-modal-content {
+  transform: scale(1);
+}
+
+.qa-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 18px;
+  color: #333;
+}
+
+.qa-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.qa-modal-close:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.qa-modal-body {
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+.qa-modal-body p {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.qa-modal-body strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.qa-error-word {
+  background: #ffebee;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #c62828;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.qa-suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.qa-suggestions li {
+  padding: 10px 15px;
+  background: #f5f5f5;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: #333;
+  border-left: 3px solid #4CAF50;
+}
+
+.qa-suggestions li:hover {
+  background: #e8f5e9;
+  transform: translateX(5px);
+}
+
+.qa-suggestions li:last-child {
+  margin-bottom: 0;
+}
+
+/* Кнопки действий */
+.qa-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.qa-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
+.qa-btn-add-dict {
+  background: #4CAF50;
+  color: white;
+}
+
+.qa-btn-add-dict:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.qa-btn-ignore {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.qa-btn-ignore:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.qa-suggestion-item {
+  cursor: pointer;
+}
+
+.qa-suggestion-item:active {
+  transform: translateX(5px) scale(0.98);
+}
