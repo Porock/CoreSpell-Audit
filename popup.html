@@ -10,10 +10,42 @@
       margin: 0;
     }
     
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
     h2 {
-      margin: 0 0 15px 0;
+      margin: 0;
       font-size: 18px;
       color: #333;
+    }
+    
+    .language-switcher {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .lang-btn {
+      padding: 4px 8px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .lang-btn:hover {
+      background: #e0e0e0;
+    }
+    
+    .lang-btn.active {
+      background: #4285f4;
+      color: white;
+      border-color: #4285f4;
     }
     
     .status {
@@ -151,34 +183,41 @@
   </style>
 </head>
 <body>
-  <h2>🔍 CoreSpell Audit</h2>
-  
-  <div class="status inactive" id="status">
-    <span class="status-text">Проверка отключена</span>
+  <div class="header">
+    <h2>🔍 <span id="extensionName">CoreSpell Audit</span></h2>
+    <div class="language-switcher">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="ru">RU</button>
+    </div>
   </div>
   
-  <button id="toggleBtn">Включить проверку</button>
+  <div class="status inactive" id="status">
+    <span class="status-text" id="statusText">Check disabled</span>
+  </div>
+  
+  <button id="toggleBtn">Enable Check</button>
   
   <div class="stats stats-clickable" id="stats" style="display: none;">
-    <div style="cursor: pointer;" id="errorCountSection" title="Кликните для навигации по ошибкам">
-      Найдено ошибок: <strong id="errorCount">0</strong> 
-      <span style="font-size: 11px; opacity: 0.8;">🔍 (кликните)</span>
+    <div style="cursor: pointer;" id="errorCountSection" title="Click to navigate through errors">
+      <span id="errorsFoundLabel">Errors found</span>: <strong id="errorCount">0</strong> 
+      <span style="font-size: 11px; opacity: 0.8;">🔍 <span id="clickHint">(click)</span></span>
     </div>
   </div>
   
   <div class="dictionary-section">
     <div class="dictionary-header">
-      <span class="dictionary-title">📚 Пользовательский словарь</span>
-      <span class="dictionary-count" id="dictCount">0 слов</span>
+      <span class="dictionary-title" id="dictionaryTitle">📚 Custom Dictionary</span>
+      <span class="dictionary-count" id="dictCount">0 words</span>
     </div>
-    <button class="btn-view-dict" id="viewDictBtn">Просмотреть словарь</button>
-    <button class="btn-secondary" id="clearDictBtn">Очистить словарь</button>
+    <button class="btn-view-dict" id="viewDictBtn">View Dictionary</button>
+    <button class="btn-secondary" id="clearDictBtn">Clear Dictionary</button>
   </div>
   
-  <div class="info">
-    Нажмите на подчеркнутую ошибку, чтобы увидеть предложения или добавить слово в словарь.
+  <div class="info" id="infoText">
+    Click on underlined error to see suggestions or add word to dictionary.
   </div>
   
+  <script src="locales.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -1,4 +1,41 @@
-// Состояние проверки
+// Основная функция проверки
+async function performCheck() {
+  showNotification(t('checkStarted', currentLang), 'info');
+  
+  // Сохраняем оригинальный HTML
+  originalHTML = document.body.innerHTML;
+  
+  // Извлекаем текстовые блоки
+  const blocks = extractTextBlocks(document.body);
+  
+  if (blocks.length === 0) {
+    showNotification(t('noTextFound', currentLang), 'warning');
+    return 0;
+  }
+  
+  // Разбиваем на батчи
+  const batches = createBatches(blocks);
+  let totalErrors = 0;
+  
+  // Обрабатываем батчи
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    const texts = batch.map(b => b.text);
+    
+    showNotification(`${t('checkingProgress', currentLang)} ${i + 1}/${batches.length}...`, 'info');
+    
+    const results = await checkTextWithAPI(texts);
+    const errorsFound = highlightErrors(batch, results);
+    totalErrors += errorsFound;
+    
+    // Небольшая задержка между запросами
+    if (i < batches.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  }
+  
+  return totalErrors;
+}// Состояние проверки
 let isCheckerActive = false;
 let originalHTML = '';
 let errorCache = new Map();
@@ -7,15 +44,20 @@ let isProcessing = false;
 let customDictionary = new Set();
 let currentErrorIndex = 0;
 let allErrors = [];
+let currentLang = 'en'; // По умолчанию английский
 
 // API Yandex.Speller
 const SPELLER_API = 'https://speller.yandex.net/services/spellservice.json/checkTexts';
 
-// Загружаем словарь из хранилища при запуске
-chrome.storage.local.get(['customDictionary'], (result) => {
+// Загружаем словарь и язык из хранилища при запуске
+chrome.storage.local.get(['customDictionary', 'language'], (result) => {
   if (result.customDictionary) {
     customDictionary = new Set(result.customDictionary);
-    console.log('Загружен словарь:', customDictionary.size, 'слов');
+    console.log('Loaded dictionary:', customDictionary.size, 'words');
+  }
+  if (result.language) {
+    currentLang = result.language;
+    console.log('Loaded language:', currentLang);
   }
 });
 
@@ -32,11 +74,11 @@ function saveDictionary() {
 function scrollToNextError() {
   allErrors = Array.from(document.querySelectorAll('.qa-text-error'));
   
-  console.log('Всего ошибок найдено:', allErrors.length);
-  console.log('Текущий индекс:', currentErrorIndex);
+  console.log('Total errors found:', allErrors.length);
+  console.log('Current index:', currentErrorIndex);
   
   if (allErrors.length === 0) {
-    showNotification('Ошибки не найдены', 'info');
+    showNotification(t('noErrors', currentLang), 'info');
     return;
   }
   
@@ -46,7 +88,7 @@ function scrollToNextError() {
   // Получаем текущую ошибку
   const currentError = allErrors[currentErrorIndex];
   
-  console.log('Прокрутка к ошибке:', currentError.textContent);
+  console.log('Scrolling to error:', currentError.textContent);
   
   // Добавляем подсветку
   currentError.classList.add('qa-text-highlight');
@@ -62,12 +104,12 @@ function scrollToNextError() {
   });
   
   // Показываем уведомление
-  showNotification(`Ошибка ${currentErrorIndex + 1} из ${allErrors.length}`, 'info');
+  showNotification(`${t('errorNavigation', currentLang)} ${currentErrorIndex + 1} ${t('of', currentLang)} ${allErrors.length}`, 'info');
   
   // Переходим к следующей ошибке (циклично)
   currentErrorIndex = (currentErrorIndex + 1) % allErrors.length;
   
-  console.log('Следующий индекс будет:', currentErrorIndex);
+  console.log('Next index will be:', currentErrorIndex);
 }
 
 // Функция для проверки текста через API
@@ -278,7 +320,10 @@ async function toggleChecker() {
   
   if (isCheckerActive) {
     const errorCount = await performCheck();
-    showNotification(`Найдено ошибок: ${errorCount}`, errorCount > 0 ? 'error' : 'success');
+    const message = errorCount > 0 ? 
+      `${t('errorsFoundNotif', currentLang)}: ${errorCount}` : 
+      t('noErrors', currentLang);
+    showNotification(message, errorCount > 0 ? 'error' : 'success');
     
     // Сбрасываем индекс при новой проверке
     currentErrorIndex = 0;
@@ -291,7 +336,7 @@ async function toggleChecker() {
     });
   } else {
     restoreOriginalText();
-    showNotification('Проверка отключена', 'info');
+    showNotification(t('checkDisabled', currentLang), 'info');
     currentErrorIndex = 0;
     allErrors = [];
     
@@ -352,12 +397,12 @@ function showErrorModal(word, suggestions) {
   modal.innerHTML = `
     <div class="qa-modal-content">
       <div class="qa-modal-header">
-        <strong>Найдена ошибка</strong>
+        <strong>${t('errorFoundTitle', currentLang)}</strong>
         <button class="qa-modal-close">×</button>
       </div>
       <div class="qa-modal-body">
-        <p><strong>Слово:</strong> <span class="qa-error-word">${escapeHtml(word)}</span></p>
-        <p><strong>Предложения:</strong></p>
+        <p><strong>${t('wordLabel', currentLang)}</strong> <span class="qa-error-word">${escapeHtml(word)}</span></p>
+        <p><strong>${t('suggestionsLabel', currentLang)}</strong></p>
         <ul class="qa-suggestions">
           ${suggestions.map(s => `<li class="qa-suggestion-item">${escapeHtml(s)}</li>`).join('')}
         </ul>
@@ -366,9 +411,9 @@ function showErrorModal(word, suggestions) {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            Добавить в словарь
+            ${t('addToDictButton', currentLang)}
           </button>
-          <button class="qa-btn qa-btn-ignore">Пропустить</button>
+          <button class="qa-btn qa-btn-ignore">${t('skipButton', currentLang)}</button>
         </div>
       </div>
     </div>
@@ -401,7 +446,7 @@ function showErrorModal(word, suggestions) {
       }
     });
     
-    showNotification(`"${word}" добавлено в словарь`, 'success');
+    showNotification(`"${word}" ${t('addedToDictionary', currentLang)}`, 'success');
     closeModal();
     
     // Обновляем счетчик
@@ -423,7 +468,7 @@ function showErrorModal(word, suggestions) {
   modal.querySelectorAll('.qa-suggestion-item').forEach(item => {
     item.addEventListener('click', () => {
       navigator.clipboard.writeText(item.textContent);
-      showNotification('Скопировано: ' + item.textContent, 'info');
+      showNotification(`${t('copied', currentLang)}: ${item.textContent}`, 'info');
     });
   });
 }
@@ -448,7 +493,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'clearDictionary') {
     customDictionary.clear();
     saveDictionary();
-    showNotification('Словарь очищен', 'info');
+    showNotification(t('dictionaryCleared', currentLang), 'info');
     sendResponse({ success: true });
   } else if (request.action === 'getDictionary') {
     sendResponse({ 
@@ -457,8 +502,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'scrollToNextError') {
     scrollToNextError();
     sendResponse({ success: true });
+  } else if (request.action === 'changeLanguage') {
+    currentLang = request.language;
+    console.log('Language changed to:', currentLang);
+    sendResponse({ success: true });
   }
   return true;
 });
 
-console.log('CoreSpell Audit с API загружен');
+console.log('CoreSpell Audit with API loaded');

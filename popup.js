@@ -1,28 +1,87 @@
 const toggleBtn = document.getElementById('toggleBtn');
 const statusDiv = document.getElementById('status');
+const statusText = document.getElementById('statusText');
 const statsDiv = document.getElementById('stats');
 const errorCount = document.getElementById('errorCount');
 const errorCountSection = document.getElementById('errorCountSection');
 const dictCount = document.getElementById('dictCount');
 const clearDictBtn = document.getElementById('clearDictBtn');
 const viewDictBtn = document.getElementById('viewDictBtn');
+const langButtons = document.querySelectorAll('.lang-btn');
+
+// Текущий язык
+let currentLang = 'en';
+
+// Загрузка языка при открытии popup
+getCurrentLanguage().then(lang => {
+  currentLang = lang;
+  updateLanguageUI(lang);
+  updateAllTexts(lang);
+});
+
+// Обновление UI языковых кнопок
+function updateLanguageUI(lang) {
+  langButtons.forEach(btn => {
+    if (btn.dataset.lang === lang) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+// Обновление всех текстов
+function updateAllTexts(lang) {
+  document.getElementById('extensionName').textContent = t('extensionName', lang);
+  document.getElementById('errorsFoundLabel').textContent = t('errorsFound', lang);
+  document.getElementById('clickHint').textContent = t('clickToNavigate', lang);
+  document.getElementById('dictionaryTitle').textContent = `📚 ${t('dictionaryTitle', lang)}`;
+  document.getElementById('viewDictBtn').textContent = t('viewDictionary', lang);
+  document.getElementById('clearDictBtn').textContent = t('clearDictionary', lang);
+  document.getElementById('infoText').textContent = t('infoText', lang);
+  
+  // Обновляем tooltip
+  errorCountSection.title = t('clickToNavigate', lang);
+}
+
+// Переключение языка
+langButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    currentLang = lang;
+    saveLanguage(lang);
+    updateLanguageUI(lang);
+    updateAllTexts(lang);
+    
+    // Отправляем сообщение content script о смене языка
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { 
+          action: 'changeLanguage', 
+          language: lang 
+        });
+      }
+    });
+  });
+});
 
 // Обновление UI
 function updateUI(isActive, count = 0, dictionarySize = 0) {
   if (isActive) {
     statusDiv.className = 'status active';
-    statusDiv.querySelector('.status-text').textContent = 'Проверка активна';
-    toggleBtn.textContent = 'Отключить проверку';
+    statusText.textContent = t('statusActive', currentLang);
+    toggleBtn.textContent = t('buttonDisable', currentLang);
     statsDiv.style.display = 'block';
     errorCount.textContent = count;
   } else {
     statusDiv.className = 'status inactive';
-    statusDiv.querySelector('.status-text').textContent = 'Проверка отключена';
-    toggleBtn.textContent = 'Включить проверку';
+    statusText.textContent = t('statusInactive', currentLang);
+    toggleBtn.textContent = t('buttonEnable', currentLang);
     statsDiv.style.display = 'none';
   }
   
-  dictCount.textContent = `${dictionarySize} слов${dictionarySize === 1 ? 'о' : dictionarySize < 5 ? 'а' : ''}`;
+  const wordsLabel = dictionarySize === 1 ? t('word', currentLang) : t('words', currentLang);
+  dictCount.textContent = `${dictionarySize} ${wordsLabel}`;
 }
 
 // Получаем текущее состояние при открытии popup
@@ -58,10 +117,8 @@ errorCountSection.addEventListener('click', (e) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0]) {
       chrome.tabs.sendMessage(tabs[0].id, { action: 'scrollToNextError' }, (response) => {
-        // Закрываем popup после отправки сообщения
-        /*setTimeout(() => {
-          window.close();
-        }, 100); */
+        // Не закрываем popup - убрали window.close()
+        console.log('Scrolled to next error');
       });
     }
   });
@@ -69,11 +126,12 @@ errorCountSection.addEventListener('click', (e) => {
 
 // Очистка словаря
 clearDictBtn.addEventListener('click', () => {
-  if (confirm('Вы уверены, что хотите очистить весь пользовательский словарь?')) {
+  const confirmMsg = t('clearConfirm', currentLang);
+  if (confirm(confirmMsg)) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, { action: 'clearDictionary' }, (response) => {
         if (response && response.success) {
-          dictCount.textContent = '0 слов';
+          updateUI(false, 0, 0);
         }
       });
     });
@@ -87,10 +145,11 @@ viewDictBtn.addEventListener('click', () => {
       if (response && response.dictionary) {
         const words = response.dictionary;
         if (words.length === 0) {
-          alert('Словарь пуст');
+          alert(t('dictionaryEmpty', currentLang));
         } else {
           const wordList = words.join('\n');
-          alert(`Слова в словаре (${words.length}):\n\n${wordList}`);
+          const title = t('wordsInDictionary', currentLang);
+          alert(`${title} (${words.length}):\n\n${wordList}`);
         }
       }
     });

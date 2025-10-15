@@ -206,7 +206,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
 ## 💙 Support Development
 
@@ -230,9 +230,7 @@ Support through GitHub with monthly or one-time sponsorships. Perfect for compan
 
 For tech-savvy supporters who prefer cryptocurrency.
 
----
-
-Your support helps:
+**Your support helps:**
 - 🔧 Maintain and update the extension
 - 🚀 Add new features and improvements
 - 🐛 Fix bugs and issues faster
@@ -251,7 +249,7 @@ Your support helps:
 
 - **Issues**: [GitHub Issues](https://github.com/Porock/corespell-audit/issues)
 - **Email**: korochentsev@gmail.com
-- **Telegram**: @IvanCore
+- **Telegram**: [@IvanCore](https://t.me/IvanCore)
 
 ## 🌟 Support the Project
 

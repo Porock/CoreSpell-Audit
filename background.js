@@ -1,14 +1,21 @@
 // Background script для обработки событий расширения
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('CoreSpell Audit установлен');
+  console.log('CoreSpell Audit installed');
+  
+  // Устанавливаем язык по умолчанию
+  chrome.storage.local.get(['language'], (result) => {
+    if (!result.language) {
+      chrome.storage.local.set({ language: 'en' });
+    }
+  });
 });
 
-// Можно добавить контекстное меню (по желанию)
+// Контекстное меню
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'qaCheckText',
-    title: 'Проверить текст на странице (CoreSpell)',
+    title: 'Check text on page (CoreSpell)',
     contexts: ['page']
   });
 });
