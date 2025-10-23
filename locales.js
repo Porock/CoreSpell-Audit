@@ -49,7 +49,12 @@ const i18n = {
     // Language switcher
     languageLabel: 'Language:',
     languageEn: 'English',
-    languageRu: 'Русский'
+    languageRu: 'Русский',
+    
+    // Export
+    exportReport: 'Export Errors Report',
+    exportSuccess: 'Report exported successfully',
+    exportNoErrors: 'No errors to export'
   },
   
   ru: {
@@ -73,7 +78,7 @@ const i18n = {
     wordsInDictionary: 'Слова в словаре',
     
     // Info text
-    infoText: 'Нажмите на подчеркнутую ошибку, чтобы увидеть предложения или добавить слово в словарь.',
+    infoText: 'Нажмите на подчеркнутую ошибку, чтобы увидеть предложения или добавить исключение в словарь.',
     
     // Notifications
     checkStarted: 'Проверка начата...',
@@ -101,7 +106,12 @@ const i18n = {
     // Language switcher
     languageLabel: 'Язык:',
     languageEn: 'English',
-    languageRu: 'Русский'
+    languageRu: 'Русский',
+    
+    // Export
+    exportReport: 'Экспорт отчета об ошибках',
+    exportSuccess: 'Отчет успешно экспортирован',
+    exportNoErrors: 'Нет ошибок для экспорта'
   }
 };
 

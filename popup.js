@@ -7,7 +7,8 @@ const errorCountSection = document.getElementById('errorCountSection');
 const dictCount = document.getElementById('dictCount');
 const clearDictBtn = document.getElementById('clearDictBtn');
 const viewDictBtn = document.getElementById('viewDictBtn');
-const langButtons = document.querySelectorAll('.lang-btn');
+const exportBtn = document.getElementById('exportBtn');
+const languageSelect = document.getElementById('languageSelect');
 
 // Текущий язык
 let currentLang = 'en';
@@ -15,20 +16,9 @@ let currentLang = 'en';
 // Загрузка языка при открытии popup
 getCurrentLanguage().then(lang => {
   currentLang = lang;
-  updateLanguageUI(lang);
+  languageSelect.value = lang;
   updateAllTexts(lang);
 });
-
-// Обновление UI языковых кнопок
-function updateLanguageUI(lang) {
-  langButtons.forEach(btn => {
-    if (btn.dataset.lang === lang) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-}
 
 // Обновление всех текстов
 function updateAllTexts(lang) {
@@ -37,31 +27,40 @@ function updateAllTexts(lang) {
   document.getElementById('clickHint').textContent = t('clickToNavigate', lang);
   document.getElementById('dictionaryTitle').textContent = `📚 ${t('dictionaryTitle', lang)}`;
   document.getElementById('viewDictBtn').textContent = t('viewDictionary', lang);
+  document.getElementById('exportBtn').textContent = `📥 ${t('exportReport', lang)}`;
   document.getElementById('clearDictBtn').textContent = t('clearDictionary', lang);
   document.getElementById('infoText').textContent = t('infoText', lang);
   
   // Обновляем tooltip
   errorCountSection.title = t('clickToNavigate', lang);
+  
+  // Обновляем состояние кнопок
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'getState' }, (response) => {
+        if (response) {
+          updateUI(response.isActive, response.errorCount, response.dictionarySize);
+        }
+      });
+    }
+  });
 }
 
 // Переключение языка
-langButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang;
-    currentLang = lang;
-    saveLanguage(lang);
-    updateLanguageUI(lang);
-    updateAllTexts(lang);
-    
-    // Отправляем сообщение content script о смене языка
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, { 
-          action: 'changeLanguage', 
-          language: lang 
-        });
-      }
-    });
+languageSelect.addEventListener('change', (e) => {
+  const lang = e.target.value;
+  currentLang = lang;
+  saveLanguage(lang);
+  updateAllTexts(lang);
+  
+  // Отправляем сообщение content script о смене языка
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, { 
+        action: 'changeLanguage', 
+        language: lang 
+      });
+    }
   });
 });
 
@@ -153,6 +152,19 @@ viewDictBtn.addEventListener('click', () => {
         }
       }
     });
+  });
+});
+
+// Экспорт отчета об ошибках
+exportBtn.addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'exportErrors' }, (response) => {
+        if (response && response.success) {
+          // CSV файл будет загружен автоматически
+        }
+      });
+    }
   });
 });
 

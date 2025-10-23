@@ -23,29 +23,25 @@
       color: #333;
     }
     
-    .language-switcher {
-      display: flex;
-      gap: 5px;
-    }
-    
-    .lang-btn {
-      padding: 4px 8px;
-      background: #f5f5f5;
+    .language-select {
+      padding: 6px 10px;
+      background: white;
       border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 11px;
+      border-radius: 6px;
+      font-size: 12px;
       cursor: pointer;
       transition: all 0.2s;
+      outline: none;
     }
     
-    .lang-btn:hover {
-      background: #e0e0e0;
-    }
-    
-    .lang-btn.active {
-      background: #4285f4;
-      color: white;
+    .language-select:hover {
       border-color: #4285f4;
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+    }
+    
+    .language-select:focus {
+      border-color: #4285f4;
+      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
     }
     
     .status {
@@ -185,10 +181,10 @@
 <body>
   <div class="header">
     <h2>🔍 <span id="extensionName">CoreSpell Audit</span></h2>
-    <div class="language-switcher">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="ru">RU</button>
-    </div>
+    <select id="languageSelect" class="language-select">
+      <option value="en">🇬🇧 English</option>
+      <option value="ru">🇷🇺 Русский</option>
+    </select>
   </div>
   
   <div class="status inactive" id="status">
@@ -210,6 +206,7 @@
       <span class="dictionary-count" id="dictCount">0 words</span>
     </div>
     <button class="btn-view-dict" id="viewDictBtn">View Dictionary</button>
+    <button class="btn-view-dict" id="exportBtn">📥 Export Errors Report</button>
     <button class="btn-secondary" id="clearDictBtn">Clear Dictionary</button>
   </div>
   

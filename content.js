@@ -1,41 +1,4 @@
-// Основная функция проверки
-async function performCheck() {
-  showNotification(t('checkStarted', currentLang), 'info');
-  
-  // Сохраняем оригинальный HTML
-  originalHTML = document.body.innerHTML;
-  
-  // Извлекаем текстовые блоки
-  const blocks = extractTextBlocks(document.body);
-  
-  if (blocks.length === 0) {
-    showNotification(t('noTextFound', currentLang), 'warning');
-    return 0;
-  }
-  
-  // Разбиваем на батчи
-  const batches = createBatches(blocks);
-  let totalErrors = 0;
-  
-  // Обрабатываем батчи
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    const texts = batch.map(b => b.text);
-    
-    showNotification(`${t('checkingProgress', currentLang)} ${i + 1}/${batches.length}...`, 'info');
-    
-    const results = await checkTextWithAPI(texts);
-    const errorsFound = highlightErrors(batch, results);
-    totalErrors += errorsFound;
-    
-    // Небольшая задержка между запросами
-    if (i < batches.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
-  }
-  
-  return totalErrors;
-}// Состояние проверки
+// Состояние проверки
 let isCheckerActive = false;
 let originalHTML = '';
 let errorCache = new Map();
@@ -48,6 +11,55 @@ let currentLang = 'en'; // По умолчанию английский
 
 // API Yandex.Speller
 const SPELLER_API = 'https://speller.yandex.net/services/spellservice.json/checkTexts';
+
+// Локализация (встроенная копия из locales.js)
+const translations = {
+  en: {
+    checkStarted: 'Checking started...',
+    checkingProgress: 'Checking',
+    errorsFoundNotif: 'Errors found',
+    noErrors: 'No errors found',
+    checkDisabled: 'Check disabled',
+    addedToDictionary: 'added to dictionary',
+    dictionaryCleared: 'Dictionary cleared',
+    noTextFound: 'No text found to check',
+    errorNavigation: 'Error',
+    of: 'of',
+    errorFoundTitle: 'Error Found',
+    wordLabel: 'Word:',
+    suggestionsLabel: 'Suggestions:',
+    addToDictButton: 'Add to Dictionary',
+    skipButton: 'Skip',
+    copied: 'Copied',
+    exportSuccess: 'Report exported successfully',
+    exportNoErrors: 'No errors to export'
+  },
+  ru: {
+    checkStarted: 'Проверка начата...',
+    checkingProgress: 'Проверка',
+    errorsFoundNotif: 'Найдено ошибок',
+    noErrors: 'Ошибки не найдены',
+    checkDisabled: 'Проверка отключена',
+    addedToDictionary: 'добавлено в словарь',
+    dictionaryCleared: 'Словарь очищен',
+    noTextFound: 'Текст для проверки не найден',
+    errorNavigation: 'Ошибка',
+    of: 'из',
+    errorFoundTitle: 'Найдена ошибка',
+    wordLabel: 'Слово:',
+    suggestionsLabel: 'Предложения:',
+    addToDictButton: 'Добавить в словарь',
+    skipButton: 'Пропустить',
+    copied: 'Скопировано',
+    exportSuccess: 'Отчет успешно экспортирован',
+    exportNoErrors: 'Нет ошибок для экспорта'
+  }
+};
+
+// Функция перевода
+function t(key) {
+  return translations[currentLang][key] || key;
+}
 
 // Загружаем словарь и язык из хранилища при запуске
 chrome.storage.local.get(['customDictionary', 'language'], (result) => {
@@ -66,12 +78,13 @@ function saveDictionary() {
   chrome.storage.local.set({ 
     customDictionary: Array.from(customDictionary) 
   }, () => {
-    console.log('Словарь сохранен');
+    console.log('Dictionary saved');
   });
 }
 
 // Функция прокрутки к следующей ошибке
 function scrollToNextError() {
+  // Обновляем список ошибок
   allErrors = Array.from(document.querySelectorAll('.qa-text-error'));
   
   console.log('Total errors found:', allErrors.length);
@@ -80,6 +93,11 @@ function scrollToNextError() {
   if (allErrors.length === 0) {
     showNotification(t('noErrors', currentLang), 'info');
     return;
+  }
+  
+  // Если индекс вышел за пределы (после удаления ошибок), сбрасываем
+  if (currentErrorIndex >= allErrors.length) {
+    currentErrorIndex = 0;
   }
   
   // Убираем предыдущую подсветку
@@ -133,7 +151,7 @@ async function checkTextWithAPI(texts) {
     const results = await response.json();
     return results;
   } catch (error) {
-    console.error('Ошибка проверки:', error);
+    console.error('Check error:', error);
     return [];
   }
 }
@@ -248,7 +266,7 @@ function highlightErrors(blocks, apiResults) {
       // Сортируем обратно по возрастанию для корректной вставки
       replacements.reverse().forEach(rep => {
         result += escapeHtml(modifiedText.substring(lastPos, rep.pos));
-        result += `<span class="qa-text-error" data-word="${escapeHtml(rep.word)}" data-suggestions="${escapeHtml(rep.suggestions)}" title="Предложения: ${escapeHtml(rep.suggestions)}">${escapeHtml(rep.word)}</span>`;
+        result += `<span class="qa-text-error" data-word="${escapeHtml(rep.word)}" data-suggestions="${escapeHtml(rep.suggestions)}" title="Suggestions: ${escapeHtml(rep.suggestions)}">${escapeHtml(rep.word)}</span>`;
         lastPos = rep.pos + rep.len;
       });
       result += escapeHtml(modifiedText.substring(lastPos));
@@ -277,7 +295,7 @@ function escapeHtml(text) {
 
 // Основная функция проверки
 async function performCheck() {
-  showNotification('Проверка начата...', 'info');
+  showNotification(t('checkStarted', currentLang), 'info');
   
   // Сохраняем оригинальный HTML
   originalHTML = document.body.innerHTML;
@@ -286,7 +304,7 @@ async function performCheck() {
   const blocks = extractTextBlocks(document.body);
   
   if (blocks.length === 0) {
-    showNotification('Текст для проверки не найден', 'warning');
+    showNotification(t('noTextFound', currentLang), 'warning');
     return 0;
   }
   
@@ -299,7 +317,7 @@ async function performCheck() {
     const batch = batches[i];
     const texts = batch.map(b => b.text);
     
-    showNotification(`Проверка ${i + 1}/${batches.length}...`, 'info');
+    showNotification(`${t('checkingProgress', currentLang)} ${i + 1}/${batches.length}...`, 'info');
     
     const results = await checkTextWithAPI(texts);
     const errorsFound = highlightErrors(batch, results);
@@ -383,9 +401,6 @@ document.addEventListener('click', (e) => {
     const word = e.target.getAttribute('data-word');
     const suggestions = e.target.getAttribute('data-suggestions');
     
-    const message = `Ошибка: "${word}"\n\nПредложения: ${suggestions}`;
-    
-    // Создаем кастомное модальное окно
     showErrorModal(word, suggestions.split(', '));
   }
 }, true);
@@ -446,6 +461,14 @@ function showErrorModal(word, suggestions) {
       }
     });
     
+    // Пересчитываем ошибки и обновляем индексы
+    allErrors = Array.from(document.querySelectorAll('.qa-text-error'));
+    
+    // Если текущий индекс больше количества ошибок, сбрасываем
+    if (currentErrorIndex >= allErrors.length) {
+      currentErrorIndex = 0;
+    }
+    
     showNotification(`"${word}" ${t('addedToDictionary', currentLang)}`, 'success');
     closeModal();
     
@@ -453,7 +476,7 @@ function showErrorModal(word, suggestions) {
     chrome.runtime.sendMessage({
       action: 'updateState',
       isActive: isCheckerActive,
-      errorCount: document.querySelectorAll('.qa-text-error').length
+      errorCount: allErrors.length
     });
   });
   
@@ -473,6 +496,87 @@ function showErrorModal(word, suggestions) {
   });
 }
 
+// Получение контекста вокруг ошибки
+function getContext(element, charsBefore = 50, charsAfter = 50) {
+  // Идем назад, собирая текст
+  let current = element.previousSibling;
+  let beforeText = '';
+  while (current && beforeText.length < charsBefore) {
+    if (current.nodeType === Node.TEXT_NODE) {
+      beforeText = current.textContent + beforeText;
+    } else if (current.textContent) {
+      beforeText = current.textContent + beforeText;
+    }
+    current = current.previousSibling;
+  }
+  beforeText = beforeText.slice(-charsBefore);
+  
+  // Текст ошибки
+  const errorText = element.textContent;
+  
+  // Идем вперед, собирая текст
+  current = element.nextSibling;
+  let afterText = '';
+  while (current && afterText.length < charsAfter) {
+    if (current.nodeType === Node.TEXT_NODE) {
+      afterText += current.textContent;
+    } else if (current.textContent) {
+      afterText += current.textContent;
+    }
+    current = current.nextSibling;
+  }
+  afterText = afterText.slice(0, charsAfter);
+  
+  return `...${beforeText}[${errorText}]${afterText}...`;
+}
+
+// Экспорт отчета об ошибках в CSV
+function exportErrorsToCSV() {
+  const errors = Array.from(document.querySelectorAll('.qa-text-error'));
+  
+  if (errors.length === 0) {
+    showNotification(t('exportNoErrors', currentLang), 'warning');
+    return false;
+  }
+  
+  // Заголовок CSV
+  let csv = 'Error Word,Suggestions,Context\n';
+  
+  // Данные
+  errors.forEach((errorEl) => {
+    const word = errorEl.getAttribute('data-word') || errorEl.textContent;
+    const suggestions = errorEl.getAttribute('data-suggestions') || '';
+    const context = getContext(errorEl, 50); // 50 символов контекста с каждой стороны
+    
+    // Экранируем кавычки и переносы строк
+    const escapedWord = `"${word.replace(/"/g, '""')}"`;
+    const escapedSuggestions = `"${suggestions.replace(/"/g, '""')}"`;
+    const escapedContext = `"${context.replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+    
+    csv += `${escapedWord},${escapedSuggestions},${escapedContext}\n`;
+  });
+  
+  // Создаем и скачиваем файл
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); // \ufeff - BOM для корректного UTF-8
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  
+  // Имя файла с датой и временем
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  const hostname = window.location.hostname.replace(/[^a-z0-9]/gi, '_');
+  link.download = `corespell-errors-${hostname}-${timestamp}.csv`;
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  showNotification(t('exportSuccess', currentLang), 'success');
+  return true;
+}
+
 // Слушаем сообщения от popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'toggle') {
@@ -483,7 +587,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         errorCount: document.querySelectorAll('.qa-text-error').length
       });
     });
-    return true; // Асинхронный ответ
+    return true;
   } else if (request.action === 'getState') {
     sendResponse({ 
       isActive: isCheckerActive,
@@ -506,6 +610,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     currentLang = request.language;
     console.log('Language changed to:', currentLang);
     sendResponse({ success: true });
+  } else if (request.action === 'exportErrors') {
+    const success = exportErrorsToCSV();
+    sendResponse({ success: success });
   }
   return true;
 });
