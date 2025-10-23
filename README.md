@@ -181,7 +181,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [ ] Add LanguageTool API integration
 - [ ] Grammar checking (not just spelling)
-- [ ] Export error report as CSV
+- [x] Export error report as CSV
 - [ ] Keyboard shortcuts
 - [ ] Dark theme
 - [ ] More language support
